@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "309444200749",
+    "firebase_url": "https://turkshare-623f1.firebaseio.com",
+    "project_id": "turkshare-623f1",
+    "storage_bucket": "turkshare-623f1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309444200749:android:bdfe0af408712d3275eba4",
+        "android_client_info": {
+          "package_name": "com.daviesmaina.turkshare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "309444200749-h6cdhv95bno6k30eesmfso3o66df1a8d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.daviesmaina.turkshare",
+            "certificate_hash": "72e42c36d2b80e2287789609049852a874c8d214"
+          }
+        },
+        {
+          "client_id": "309444200749-kol3r9q25qjk59hb0a8kiqj2s10fej15.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBonNIpaKFTE9hteJ3_hSlNjC0OEOQ8Ic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "309444200749-kol3r9q25qjk59hb0a8kiqj2s10fej15.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "309444200749-k6vn906vviiqqm0nui395ojigq9eorb3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.daviesmaina.turkshare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
