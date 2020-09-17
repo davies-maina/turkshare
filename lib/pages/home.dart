@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:turkshare/pages/Notifications.dart';
+import 'package:turkshare/pages/profile.dart';
+import 'package:turkshare/pages/search.dart';
+import 'package:turkshare/pages/timeline.dart';
+import 'package:turkshare/pages/upload.dart';
 
 final GoogleSignIn googleSignIn= GoogleSignIn();
 
@@ -12,9 +17,12 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   bool isAuth=false;
+  PageController pageController;
+  int getPageIndex=0;
 
   void initState(){
     super.initState();
+    pageController=PageController();
 
     googleSignIn.onCurrentUserChanged.listen((account){
         controlSignIn(account);
@@ -42,6 +50,12 @@ class _HomeState extends State<Home> {
     }
   }
 
+  void dispose(){
+    pageController.dispose();
+    super.dispose();
+
+  }
+
   login(){
 
     googleSignIn.signIn();
@@ -50,8 +64,48 @@ class _HomeState extends State<Home> {
   logout(){
     googleSignIn.signOut();
   }
-  Widget buildAuthScreen(){
-    return RaisedButton.icon(onPressed: logout, icon: Icon(Icons.close), label:Text('Sign out'));
+
+  whenPageChanges(int pageIndex){
+    setState(() {
+      this.getPageIndex=pageIndex;
+    });
+  }
+  changePage(int pageIndex){
+    pageController.animateToPage(pageIndex, duration: Duration(microseconds: 400), curve: Curves.bounceInOut);
+  }
+  Scaffold buildAuthScreen(){
+    //return RaisedButton.icon(onPressed: logout, icon: Icon(Icons.close), label:Text('Sign out'));
+    return Scaffold(
+      body: PageView(
+        children: <Widget>[
+          Timeline(),
+          Search(),
+          Upload(),
+          Notifications(),
+          Profile(),
+
+
+        ],
+
+        controller: pageController,
+        onPageChanged: whenPageChanges,
+        physics: NeverScrollableScrollPhysics(),
+    ),
+    bottomNavigationBar: CupertinoTabBar(
+      backgroundColor: Theme.of(context).accentColor,
+    currentIndex: getPageIndex,
+    onTap: changePage,
+      activeColor: Colors.white,
+      inactiveColor: Colors.blueGrey,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home)),
+        BottomNavigationBarItem(icon: Icon(Icons.search)),
+        BottomNavigationBarItem(icon: Icon(Icons.photo_camera,size: 37.0,)),
+        BottomNavigationBarItem(icon: Icon(Icons.favorite)),
+        BottomNavigationBarItem(icon: Icon(Icons.person)),
+      ],
+    ),
+    );
   }
 
   Scaffold buildUnAuthScreen(){
