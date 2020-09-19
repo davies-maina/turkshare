@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:turkshare/widgets/header.dart';
 
 class Notifications extends StatefulWidget {
   @override
@@ -7,7 +8,17 @@ class Notifications extends StatefulWidget {
 
 class _NotificationsState extends State<Notifications> {
   @override
-  Widget build(context) {
-    return Text("Notifications");
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: header(context,currentPageTitle: 'Notifications'),
+    );
   }
 }
+
+class NotificationsItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
