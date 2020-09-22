@@ -1,13 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:turkshare/models/user.dart';
 import 'package:turkshare/pages/Notifications.dart';
+import 'package:turkshare/pages/create_account.dart';
 import 'package:turkshare/pages/profile.dart';
 import 'package:turkshare/pages/search.dart';
 import 'package:turkshare/pages/timeline.dart';
 import 'package:turkshare/pages/upload.dart';
 
 final GoogleSignIn googleSignIn= GoogleSignIn();
+final userReference=FirebaseFirestore.instance.collection('users');
+final DateTime timestamp=DateTime.now();
+User currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -25,7 +31,7 @@ class _HomeState extends State<Home> {
     pageController=PageController();
 
     googleSignIn.onCurrentUserChanged.listen((account){
-        controlSignIn(account);
+      controlSignIn(account);
     },onError: (error){
       print('error message :' + error);
     });
@@ -39,15 +45,38 @@ class _HomeState extends State<Home> {
 
   controlSignIn(GoogleSignInAccount signInAccount) async{
     if(signInAccount!=null){
-        setState(() {
-          isAuth=true;
-        });
+      await storeUserInfoToFirestore();
+      setState(() {
+        isAuth=true;
+      });
     }
     else{
       setState(() {
         isAuth=false;
       });
     }
+  }
+
+  storeUserInfoToFirestore() async{
+    final GoogleSignInAccount getCurrentUser=googleSignIn.currentUser;
+    DocumentSnapshot documentSnapshot=await userReference.doc(getCurrentUser.id).get();
+
+    if(!documentSnapshot.exists){
+      final username=await Navigator.push(context, MaterialPageRoute(builder: (context)=> CreateAccount()));
+
+      userReference.doc(getCurrentUser.id).set({
+        "id":getCurrentUser.id,
+        "profileName":getCurrentUser.displayName,
+        "username":username,
+        "url":getCurrentUser.photoUrl,
+        "email":getCurrentUser.email,
+        "bio":"",
+        "timestamp":timestamp
+      });
+
+      documentSnapshot=await userReference.doc(getCurrentUser.id).get();
+    }
+    currentUser=User.fromDocument(documentSnapshot);
   }
 
   void dispose(){
@@ -90,21 +119,21 @@ class _HomeState extends State<Home> {
         controller: pageController,
         onPageChanged: whenPageChanges,
         physics: NeverScrollableScrollPhysics(),
-    ),
-    bottomNavigationBar: CupertinoTabBar(
-      backgroundColor: Theme.of(context).accentColor,
-    currentIndex: getPageIndex,
-    onTap: changePage,
-      activeColor: Colors.white,
-      inactiveColor: Colors.blueGrey,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.home)),
-        BottomNavigationBarItem(icon: Icon(Icons.search)),
-        BottomNavigationBarItem(icon: Icon(Icons.photo_camera,size: 37.0,)),
-        BottomNavigationBarItem(icon: Icon(Icons.favorite)),
-        BottomNavigationBarItem(icon: Icon(Icons.person)),
-      ],
-    ),
+      ),
+      bottomNavigationBar: CupertinoTabBar(
+        backgroundColor: Theme.of(context).accentColor,
+        currentIndex: getPageIndex,
+        onTap: changePage,
+        activeColor: Colors.white,
+        inactiveColor: Colors.blueGrey,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home)),
+          BottomNavigationBarItem(icon: Icon(Icons.search)),
+          BottomNavigationBarItem(icon: Icon(Icons.photo_camera,size: 37.0,)),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite)),
+          BottomNavigationBarItem(icon: Icon(Icons.person)),
+        ],
+      ),
     );
   }
 
@@ -113,14 +142,14 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Theme.of(context).primaryColorDark,
-              Theme.of(context).accentColor.withOpacity(0.7)
-            ]
-          )
+            gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [
+                  Theme.of(context).primaryColorDark,
+                  Theme.of(context).accentColor.withOpacity(0.7)
+                ]
+            )
         ),
         alignment: Alignment.center,
         child: Column(
@@ -128,9 +157,9 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text('Turkshare',style: TextStyle(
-              fontFamily:'"Signatra',
-              fontSize: 90,
-              color: Colors.white
+                fontFamily:'"Signatra',
+                fontSize: 90,
+                color: Colors.white
             ),
             ),
             GestureDetector(
@@ -139,13 +168,13 @@ class _HomeState extends State<Home> {
                 width: 260,
                 height: 60,
                 decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      "assets/images/google_signin_button.png",
+                    image: DecorationImage(
+                        image: AssetImage(
+                          "assets/images/google_signin_button.png",
 
-                    ),
-                    fit: BoxFit.cover
-                  )
+                        ),
+                        fit: BoxFit.cover
+                    )
                 ),
               ),
             ),
