@@ -107,7 +107,8 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          Timeline(),
+          //Timeline(),
+      RaisedButton.icon(onPressed: logout, icon: Icon(Icons.close), label:Text('Sign out')),
           Search(),
           Upload(),
           Notifications(),

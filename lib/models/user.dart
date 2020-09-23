@@ -23,8 +23,8 @@ class User {
       id: doc.id,
       email: doc.data()['email'],
       username: doc.data()['username'],
-      url: doc.data()['photoUrl'],
-      profileName: doc.data()['displayName'],
+      url: doc.data()['url'],
+      profileName: doc.data()['profileName'],
       bio: doc.data()['bio'],
     );
   }
