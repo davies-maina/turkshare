@@ -110,7 +110,7 @@ class _HomeState extends State<Home> {
           //Timeline(),
       RaisedButton.icon(onPressed: logout, icon: Icon(Icons.close), label:Text('Sign out')),
           Search(),
-          Upload(),
+          Upload(currentUser: currentUser,),
           Notifications(),
           Profile(),
 

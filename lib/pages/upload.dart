@@ -1,10 +1,16 @@
 
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:turkshare/models/user.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Upload extends StatefulWidget {
+  final User currentUser;
+
+  Upload({this.currentUser});
   @override
   _UploadState createState() => _UploadState();
 }
@@ -12,6 +18,9 @@ class Upload extends StatefulWidget {
 class _UploadState extends State<Upload> {
   File _image;
   final picker = ImagePicker();
+  TextEditingController descriptionTextEditingController=TextEditingController();
+  TextEditingController locationTextEditingController=TextEditingController();
+
 
   pickImage(nContext){
     return showDialog(
@@ -19,13 +28,15 @@ class _UploadState extends State<Upload> {
         context: nContext,
         builder: (context){
           return SimpleDialog(
-        title: Text(
-        'New post',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold
-          ),
+        title: Center(
+          child: Text(
+          'New post',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold
+            ),
     ),
+        ),
 
             children: <Widget>[
               SimpleDialogOption(
@@ -128,13 +139,162 @@ class _UploadState extends State<Upload> {
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
+        Navigator.pop(context);
       } else {
         print('No image selected.');
       }
     });
   }
+
+  removeImage(){
+
+    setState(() {
+      _image=null;
+    });
+  }
+
+  displayUploadFormScreen(){
+    return Scaffold(
+      backgroundColor:Theme.of(context).accentColor.withOpacity(0.5) ,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        leading: IconButton(icon:Icon(Icons.arrow_back_ios,color: Colors.black,), onPressed: removeImage),
+        title: Text(
+          'New post',
+          style: TextStyle(
+            fontSize: 24.0,
+            color: Colors.black,
+            fontWeight: FontWeight.bold
+          ),
+        ),
+
+        actions: <Widget>[
+          FlatButton(onPressed: ()=>print('tapped'), child: Text(
+            'Share',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 16.0
+            ),
+
+          ))
+        ],
+      ),
+
+      body: ListView(
+
+        children: <Widget>[
+          Container(
+
+            height: 230.0,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: AspectRatio(
+              aspectRatio: 16/9,
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: FileImage(_image),
+                    fit: BoxFit.cover
+
+                  )
+                ),
+              ),
+
+
+            ),
+          ),
+
+          Padding(
+              padding: EdgeInsets.only(top: 12.0)
+
+          ),
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: CachedNetworkImageProvider(
+                      widget.currentUser.url
+              ),
+            ),
+
+            title: Container(
+
+              width: 250.0,
+              child: TextField(
+                style:TextStyle(
+                  color: Colors.white,
+                ),
+                controller: descriptionTextEditingController,
+                decoration: InputDecoration(
+                  hintText: 'Image caption',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                  ),
+                  border: InputBorder.none
+                ),
+              ),
+            ),
+          ),
+
+          Divider(),
+
+          ListTile(
+            leading: Icon(
+              Icons.person_pin_circle,
+              color: Colors.white,
+              size: 36.0,
+            ),
+
+            title: Container(
+              width: 250.0,
+              child: TextField(
+                style:TextStyle(
+                  color: Colors.white,
+                ),
+                controller: locationTextEditingController,
+                decoration: InputDecoration(
+                    hintText: 'Location name',
+                    hintStyle: TextStyle(
+                      color: Colors.white,
+                    ),
+                    border: InputBorder.none,
+
+                ),
+              ),
+            ),
+          ),
+
+          Container(
+            width: 220.0,
+            height: 120.0,
+            alignment: Alignment.center,
+            child: RaisedButton.icon(onPressed: getUserCurrentLocation, icon: Icon(Icons.add_location,color: Colors.white,), label: Text(
+              'Get my current location',
+              style: TextStyle(
+                color: Colors.white
+              ),
+            ),shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(35.0),
+
+            ),
+              color: Theme.of(context).accentColor
+              ,),
+          )
+
+
+        ],
+      ),
+    );
+  }
+
+  getUserCurrentLocation() async {
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placeMarks=await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
+    Placemark nPlaceMark=placeMarks[0];
+    String addressInfo='${nPlaceMark.subThoroughfare} ${nPlaceMark.thoroughfare}, ${nPlaceMark.subLocality} ${nPlaceMark.locality},${nPlaceMark.subAdministrativeArea} ${nPlaceMark.administrativeArea},${nPlaceMark.postalCode} ${nPlaceMark.country},';
+    String specificAddressInfo='${nPlaceMark.locality},${nPlaceMark.country}';
+    locationTextEditingController.text=specificAddressInfo;
+  }
   @override
   Widget build(BuildContext context) {
-    return displayUploadScreen();
+    return _image==null ? displayUploadScreen():displayUploadFormScreen();
   }
 }
