@@ -1,11 +1,16 @@
 
 import 'dart:io';
+import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:turkshare/models/user.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:uuid/uuid.dart';
+import 'package:image/image.dart' as ImD;
+
 
 class Upload extends StatefulWidget {
   final User currentUser;
@@ -18,8 +23,13 @@ class Upload extends StatefulWidget {
 class _UploadState extends State<Upload> {
   File _image;
   final picker = ImagePicker();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   TextEditingController descriptionTextEditingController=TextEditingController();
   TextEditingController locationTextEditingController=TextEditingController();
+  bool uploading=false;
+
+  String postId=Uuid().v4();
+
 
 
   pickImage(nContext){
@@ -155,6 +165,7 @@ class _UploadState extends State<Upload> {
 
   displayUploadFormScreen(){
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor:Theme.of(context).accentColor.withOpacity(0.5) ,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -169,7 +180,9 @@ class _UploadState extends State<Upload> {
         ),
 
         actions: <Widget>[
-          FlatButton(onPressed: ()=>print('tapped'), child: Text(
+          FlatButton(onPressed: uploading ? null:()=>{
+            uploadAndSave()
+          }, child: Text(
             'Share',
             style: TextStyle(
               color: Colors.black,
@@ -287,11 +300,32 @@ class _UploadState extends State<Upload> {
 
   getUserCurrentLocation() async {
     Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
     List<Placemark> placeMarks=await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
     Placemark nPlaceMark=placeMarks[0];
     String addressInfo='${nPlaceMark.subThoroughfare} ${nPlaceMark.thoroughfare}, ${nPlaceMark.subLocality} ${nPlaceMark.locality},${nPlaceMark.subAdministrativeArea} ${nPlaceMark.administrativeArea},${nPlaceMark.postalCode} ${nPlaceMark.country},';
     String specificAddressInfo='${nPlaceMark.locality},${nPlaceMark.country}';
+
     locationTextEditingController.text=specificAddressInfo;
+  }
+
+  compressPhoto() async {
+    final toDirectory=await getTemporaryDirectory();
+    final path=toDirectory.path;
+    ImD.Image imageFile=ImD.decodeImage(_image.readAsBytesSync());
+    final compressedImage=File('$path/img_$postId.jpg')..writeAsBytesSync(ImD.encodeJpg(imageFile,quality: 90));
+
+    setState(() {
+      _image=compressedImage;
+    });
+  }
+
+  uploadAndSave() async{
+    setState(() {
+      uploading=true;
+    });
+
+   await compressPhoto();
   }
   @override
   Widget build(BuildContext context) {
