@@ -3,11 +3,14 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:turkshare/models/user.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:turkshare/pages/home.dart';
+import 'package:turkshare/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as ImD;
 
@@ -20,7 +23,7 @@ class Upload extends StatefulWidget {
   _UploadState createState() => _UploadState();
 }
 
-class _UploadState extends State<Upload> {
+class _UploadState extends State<Upload> with AutomaticKeepAliveClientMixin<Upload> {
   File _image;
   final picker = ImagePicker();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -156,8 +159,9 @@ class _UploadState extends State<Upload> {
     });
   }
 
-  removeImage(){
-
+  clearPostInfo(){
+    locationTextEditingController.clear();
+    descriptionTextEditingController.clear();
     setState(() {
       _image=null;
     });
@@ -169,7 +173,7 @@ class _UploadState extends State<Upload> {
       backgroundColor:Theme.of(context).accentColor.withOpacity(0.5) ,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leading: IconButton(icon:Icon(Icons.arrow_back_ios,color: Colors.black,), onPressed: removeImage),
+        leading: IconButton(icon:Icon(Icons.arrow_back_ios,color: Colors.black,), onPressed: clearPostInfo),
         title: Text(
           'New post',
           style: TextStyle(
@@ -197,6 +201,7 @@ class _UploadState extends State<Upload> {
       body: ListView(
 
         children: <Widget>[
+          uploading ? linearProgress():Text(''),
           Container(
 
             height: 230.0,
@@ -326,7 +331,46 @@ class _UploadState extends State<Upload> {
     });
 
    await compressPhoto();
+
+   String downLoadUrl=await uploadPhotoToDb(_image);
+   savePostInfoToFirestore(url:downLoadUrl,location:locationTextEditingController.text,description:descriptionTextEditingController.text);
+
+   locationTextEditingController.clear();
+   descriptionTextEditingController.clear();
+
+   setState(() {
+     _image=null;
+     uploading=false;
+     postId=Uuid().v4();
+   });
   }
+
+  Future<String>uploadPhotoToDb(image) async {
+    StorageUploadTask storageUploadTask=storageReference.child('post_$postId.jpg').putFile(image);
+    StorageTaskSnapshot storageTaskSnapshot= await storageUploadTask.onComplete;
+    String downloadUrl=await storageTaskSnapshot.ref.getDownloadURL();
+
+      return downloadUrl.toString();
+
+
+  }
+
+  savePostInfoToFirestore({String url,String location,String description}){
+
+      postReference.doc(widget.currentUser.id).collection('user_posts').doc(postId).set({
+        "postId":postId,
+        "ownerId":widget.currentUser.id,
+        "timestamp":timestamp,
+        "likes":{},
+        "username":widget.currentUser.username,
+        "description":description,
+        "location":location,
+        "postPicUrl":url
+      });
+
+  }
+
+  bool get wantKeepAlive=>true;
   @override
   Widget build(BuildContext context) {
     return _image==null ? displayUploadScreen():displayUploadFormScreen();

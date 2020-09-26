@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -9,9 +10,14 @@ import 'package:turkshare/pages/profile.dart';
 import 'package:turkshare/pages/search.dart';
 import 'package:turkshare/pages/timeline.dart';
 import 'package:turkshare/pages/upload.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
 
 final GoogleSignIn googleSignIn= GoogleSignIn();
 final userReference=FirebaseFirestore.instance.collection('users');
+final StorageReference storageReference=FirebaseStorage.instance.ref().child("ppics");
+final postReference=FirebaseFirestore.instance.collection('posts');
+
 final DateTime timestamp=DateTime.now();
 User currentUser;
 
@@ -85,13 +91,15 @@ class _HomeState extends State<Home> {
 
   }
 
-  login(){
+  login() async{
+  auth.FirebaseAuth.instance.signInWithEmailAndPassword(email: "admin@test.com", password: "admin123");
 
     googleSignIn.signIn();
   }
 
   logout(){
     googleSignIn.signOut();
+    auth.FirebaseAuth.instance.signOut();
   }
 
   whenPageChanges(int pageIndex){
@@ -158,7 +166,7 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text('Turkshare',style: TextStyle(
-                fontFamily:'"Signatra',
+                fontFamily:'Signatra',
                 fontSize: 90,
                 color: Colors.white
             ),
