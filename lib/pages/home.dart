@@ -120,7 +120,7 @@ class _HomeState extends State<Home> {
           Search(),
           Upload(currentUser: currentUser,),
           Notifications(),
-          Profile(),
+          Profile(userProfileId:currentUser.id),
 
 
         ],
